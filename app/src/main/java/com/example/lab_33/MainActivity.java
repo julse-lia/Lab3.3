@@ -6,18 +6,18 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.Arrays;
-import java.util.Random;
+import  java.util.Arrays ;
+import  java.util.Random ;
 
 public class MainActivity extends AppCompatActivity {
-    private final static Random RANDOM = new Random();
-    private final static int N = 4;
+    private  final  static  Random  RANDOM  =  new  Random ();
+    private  final  static  int  N  =  4 ;
     private static int resultGenotype;
     private int a, b, c, d, y;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super . onCreate (savedInstanceState);
         setContentView(R.layout.activity_main);
     }
 
@@ -29,10 +29,10 @@ public class MainActivity extends AppCompatActivity {
         String inputY = ((EditText) findViewById(R.id.y)).getText().toString();
 
         if (inputA.isEmpty() || inputB.isEmpty() || inputC.isEmpty() || inputD.isEmpty() || inputY.isEmpty()) {
-            Toast.makeText(this, "Введіть всі значення рівняння!", Toast.LENGTH_SHORT).show();
+            Toast . makeText ( this , " Enter all the values of the equation! " , Toast.LENGTH_SHORT ).show ();
             return;
         }
-        a = Integer.parseInt(inputA);
+        a =  Integer.parseInt(INPUT);
         b = Integer.parseInt(inputB);
         c = Integer.parseInt(inputC);
         d = Integer.parseInt(inputD);
@@ -41,10 +41,12 @@ public class MainActivity extends AppCompatActivity {
         int f;
         int[] deltas = new int[N];
         int[][] population = generatePopulation();
-        long time = System.nanoTime();
+        double[] timeOfGen = new double[100];
+        int[][] outputs = new int[100][N];
         boolean flag = true;
         while (flag) {
-            for (int i = 0; i < N; i++) {
+            for (int i = 0, currentMutPercent = 0; i < timeOfGen; i++, currentMutPercent++) {
+                long time = System.Nanotime();
                 f = a * population[i][0] + b * population[i][1] + c * population[i][2] + d * population[i][3];
                 deltas[i] = Math.abs(y - f);
             }
@@ -56,12 +58,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (!flag) break;
-            population = newGeneration(population, generateProbabilities(deltas));
+            population = newGeneration(population, generateProbabilities(deltas), currentMutPercent);
         }
         time = System.nanoTime() - time;
-        TextView result = findViewById(R.id.result);
-        result.setText("Корені: " + Arrays.toString(population[resultGenotype]) + "\nЧас(сек): " + time / 1_000_000_000.0);
+        timeOfGen[i] = time/1_000_000_000.0;
+        outputs[i] = population[resultGenotype];
+        //TextView result = findViewById(R.id.result);
     }
+    int output = minIndex(timeOfGen);
+    TextView res1 = findViewById(R.id.result) ;
+    res1.setTxt("Result: " + Arrays.toString(outputs[output]));
+
+    TextView res2 = findViewById(R.id.textView18);
+    res2.setText("Time: " + timeOfGen[output]);
+
+    TextView res3 = findViewById(R.id.textView19);
+    res3.setText("Mutation in %: " +  output);
 
     private int[][] generatePopulation() {
         int[][] population = new int[N][N];
@@ -90,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         return probabilities;
     }
 
-    private int[][] newGeneration(int[][] oldPopulation, double[] probabilities) {
+    private int[][] newGeneration(int[][] oldPopulation, double[] probabilities, int mutationPercent) {
         int[][] newGen = new int[N][N];
         for (int i = 0; i < N; i++) {
             int root1 = peekRoot(probabilities);
@@ -100,7 +112,9 @@ public class MainActivity extends AppCompatActivity {
             newGen[i][2] = oldPopulation[root2][2];
             newGen[i][3] = oldPopulation[root2][3];
         }
-        generateMutation(newGen);
+        if(RANDOM.nextDouble() < mutationPercent / 100.0) {
+            generateMutation(newGen);
+        }
         return newGen;
     }
     private int[][] generateMutation(int[][] population){
@@ -108,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         int numberOfMutation = (int) Math.round(mutationProbabilities*N*N);
 
         for (int i = 0; i < numberOfMutation; i++) {
-            population[RANDOM.nextInt(N)][RANDOM.nextInt(N)] = RANDOM.nextInt(y);
+            population [ RANDOM . nextInt ( N )] [ RANDOM . nextInt ( N )] =  RANDOM . nextInt (y);
         }
         return population;
     }
@@ -125,4 +139,14 @@ public class MainActivity extends AppCompatActivity {
             return 3;
         }
     }
-}
+    private int minIndex(double[] numbers) {
+        double minValue = numbers[0];
+        int minIndex =  0 ;
+
+        for(int i = 1; i < numbers.length; i++) {
+            if(numbers[i] < minValue) {
+                minValue = numbers[i];
+                minIndex = i;
+            }
+        }
+   }
